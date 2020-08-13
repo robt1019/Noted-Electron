@@ -122,6 +122,13 @@ ipcMain.on("navigateToNotes", () => {
   noteProcess.destroyWindow();
 });
 
+ipcMain.on("updateNote", (_, note) => {
+  console.log(note);
+  const prevNote = inMemoryNotes[note.id];
+  notes.updateNote(prevNote, note);
+  notesProcess.destroyWindow();
+});
+
 function openAuthWindowInBrowser() {
   shell.openExternal(auth.getAuthenticationURL());
 }

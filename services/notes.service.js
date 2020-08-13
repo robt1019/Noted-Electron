@@ -1,6 +1,8 @@
 const io = require("socket.io-client");
 const { apiIdentifier } = require("../env-variables.json");
 const auth = require("../services/auth.service");
+const { diff_match_patch } = require("diff-match-patch");
+const dmp = new diff_match_patch();
 
 let socket;
 
@@ -23,6 +25,14 @@ const onInitialNotes = (cb) => {
 
 const onNoteDeleted = (cb) => {
   _onNoteDeleted = cb;
+};
+
+const updateNote = (prevNote, updatedNote) => {
+  socket.emit("updateNote", {
+    id: updatedNote.id,
+    title: dmp.diff_main(prevNote.title, updatedNote.title),
+    body: dmp.diff_main(prevNote.body, updatedNote.body),
+  });
 };
 
 const connectToSocket = () => {
@@ -77,4 +87,5 @@ module.exports = {
   onNoteUpdated,
   onNoteDeleted,
   onInitialNotes,
+  updateNote,
 };

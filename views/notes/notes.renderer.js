@@ -15,7 +15,11 @@ window.noted.onNotes((_, notes) => {
     const text = document.createTextNode(note.title);
     li.appendChild(text);
     li.addEventListener("click", () => {
-      window.noted.navigateToNote(note);
+      window.noted.navigateToNote({
+        id: noteId,
+        title: note.title,
+        body: note.body,
+      });
     });
     noteNodes.push(li);
   });
