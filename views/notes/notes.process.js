@@ -4,7 +4,7 @@ const BrowserWindow = electron.BrowserWindow;
 
 let notesWindow = null;
 
-const createWindow = () => {
+const createWindow = (inMemoryNotes) => {
   destroyWindow();
 
   notesWindow = new BrowserWindow({
@@ -19,7 +19,11 @@ const createWindow = () => {
     },
   });
 
-  notesWindow.loadURL(`file://${__dirname}/notes.html`);
+  notesWindow.loadURL(`file://${__dirname}/notes.html`).then(() => {
+    if (inMemoryNotes) {
+      notesWindow.webContents.send("notes", inMemoryNotes);
+    }
+  });
 };
 
 const destroyWindow = () => {
@@ -29,7 +33,14 @@ const destroyWindow = () => {
   }
 };
 
+const setNotes = (notes) => {
+  if (notesWindow) {
+    notesWindow.webContents.send("notes", notes);
+  }
+};
+
 module.exports = {
   createWindow,
   destroyWindow,
+  setNotes,
 };

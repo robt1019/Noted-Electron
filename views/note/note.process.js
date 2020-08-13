@@ -16,7 +16,9 @@ const createWindow = (note) => {
     },
   });
 
-  noteWindow.loadURL(`file://${__dirname}/note.html`);
+  noteWindow.loadURL(`file://${__dirname}/note.html`).then(() => {
+    noteWindow.webContents.send("note", note);
+  });
 };
 
 const destroyWindow = () => {
