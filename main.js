@@ -8,6 +8,7 @@ const authService = require("./services/auth.service");
 const noteProcess = require("./views/note/note.process");
 const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
+const { v4: uuidv4 } = require("uuid");
 
 const patch = (string, diff) => {
   dmp.diff_cleanupSemantic(diff);
@@ -122,11 +123,19 @@ ipcMain.on("navigateToNotes", () => {
   noteProcess.destroyWindow();
 });
 
+ipcMain.on("createNote", () => {
+  notes.createNote({ id: uuidv4(), title: "New...", body: "Body..." });
+});
+
 ipcMain.on("updateNote", (_, note) => {
   console.log(note);
   const prevNote = inMemoryNotes[note.id];
   notes.updateNote(prevNote, note);
   notesProcess.destroyWindow();
+});
+
+ipcMain.on("deleteNote", (_, noteId) => {
+  notes.deleteNote(noteId);
 });
 
 function openAuthWindowInBrowser() {

@@ -1,8 +1,13 @@
 const logoutButton = document.getElementById("logoutButton");
+const addNoteButton = document.getElementById("addNoteButton");
 const notesList = document.getElementById("notesList");
 
 logoutButton.addEventListener("click", () => {
   window.noted.logout();
+});
+
+addNoteButton.addEventListener("click", () => {
+  window.noted.createNote();
 });
 
 window.noted.onNotes((_, notes) => {
@@ -12,18 +17,24 @@ window.noted.onNotes((_, notes) => {
     const note = notes[noteId];
     console.log(note);
     const li = document.createElement("li");
-    const text = document.createTextNode(note.title);
-    li.appendChild(text);
-    li.addEventListener("click", () => {
+    const titleSpan = document.createElement("span");
+    titleSpan.innerText = note.title;
+    titleSpan.addEventListener("click", () => {
       window.noted.navigateToNote({
         id: noteId,
         title: note.title,
         body: note.body,
       });
     });
+    li.appendChild(titleSpan);
+    const deleteButton = document.createElement("button");
+    deleteButton.innerText = "delete";
+    deleteButton.addEventListener("click", () => {
+      window.noted.deleteNote(noteId);
+    });
+    li.append(deleteButton);
     noteNodes.push(li);
   });
-  console.log(noteNodes);
   noteNodes = noteNodes.sort((note1, note2) => {
     if (note1.innerText.toLowerCase() < note2.innerText.toLowerCase()) {
       return -1;
@@ -31,6 +42,5 @@ window.noted.onNotes((_, notes) => {
       return 1;
     }
   });
-  console.log(noteNodes);
   noteNodes.forEach((node) => notesList.appendChild(node));
 });

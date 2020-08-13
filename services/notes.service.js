@@ -27,12 +27,20 @@ const onNoteDeleted = (cb) => {
   _onNoteDeleted = cb;
 };
 
+const createNote = (note) => {
+  socket.emit("createNote", note);
+};
+
 const updateNote = (prevNote, updatedNote) => {
   socket.emit("updateNote", {
     id: updatedNote.id,
     title: dmp.diff_main(prevNote.title, updatedNote.title),
     body: dmp.diff_main(prevNote.body, updatedNote.body),
   });
+};
+
+const deleteNote = (noteId) => {
+  socket.emit("deleteNote", noteId);
 };
 
 const connectToSocket = () => {
@@ -87,5 +95,7 @@ module.exports = {
   onNoteUpdated,
   onNoteDeleted,
   onInitialNotes,
+  createNote,
   updateNote,
+  deleteNote,
 };
