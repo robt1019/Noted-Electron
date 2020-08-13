@@ -1,6 +1,7 @@
 let noteWindow = null;
+const { BrowserWindow } = require("electron");
 
-const createWindow = () => {
+const createWindow = (note) => {
   destroyWindow();
 
   noteWindow = new BrowserWindow({

@@ -63,6 +63,16 @@ ipcMain.on("login", () => {
   openAuthWindowInBrowser();
 });
 
+ipcMain.on("navigateToNote", (note) => {
+  noteProcess.createWindow(note);
+  notesProcess.destroyWindow();
+});
+
+ipcMain.on("navigateToNotes", () => {
+  notesProcess.createWindow();
+  noteProcess.destroyWindow();
+});
+
 function openAuthWindowInBrowser() {
   shell.openExternal(auth.getAuthenticationURL());
 }
