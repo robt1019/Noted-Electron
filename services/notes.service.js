@@ -3,6 +3,7 @@ const { apiIdentifier } = require("../env-variables.json");
 const auth = require("../services/auth.service");
 const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
+const offlineUpdates = require("./offline-updates.service");
 
 let socket;
 
