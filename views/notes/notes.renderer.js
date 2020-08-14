@@ -13,24 +13,19 @@ addNoteButton.addEventListener("click", () => {
 window.noted.onNotes((_, notes) => {
   notesList.innerHTML = "";
   let noteNodes = [];
-  Object.keys(notes).forEach((noteId) => {
-    const note = notes[noteId];
+  notes.forEach((note) => {
     console.log(note);
     const li = document.createElement("li");
     const titleSpan = document.createElement("span");
     titleSpan.innerText = note.title;
     titleSpan.addEventListener("click", () => {
-      window.noted.navigateToNote({
-        id: noteId,
-        title: note.title,
-        body: note.body,
-      });
+      window.noted.navigateToNote(note);
     });
     li.appendChild(titleSpan);
     const deleteButton = document.createElement("button");
     deleteButton.innerText = "delete";
     deleteButton.addEventListener("click", () => {
-      window.noted.deleteNote(noteId);
+      window.noted.deleteNote(note.id);
     });
     li.append(deleteButton);
     noteNodes.push(li);

@@ -9,6 +9,7 @@ const noteProcess = require("./views/note/note.process");
 const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
 const { v4: uuidv4 } = require("uuid");
+const noteStorage = require("./services/note-storage.service");
 
 const patch = (string, diff) => {
   dmp.diff_cleanupSemantic(diff);
@@ -16,8 +17,6 @@ const patch = (string, diff) => {
   const patched = dmp.patch_apply(patches, string);
   return patched[0];
 };
-
-let inMemoryNotes;
 
 const redirectServer = express();
 
@@ -71,38 +70,95 @@ app.on("activate", () => {
 });
 
 notes.onInitialNotes((notes) => {
-  inMemoryNotes = notes;
-  notesProcess.setNotes(inMemoryNotes);
+  Object.keys(notes).forEach((noteId) => {
+    const serverNote = notes[noteId];
+    noteStorage.getNoteById(noteId, (err, storedNote) => {
+      if (err) {
+        console.err("failed to fetch note");
+      }
+      if (storedNote) {
+        if (
+          !(
+            storedNote.title === serverNote.title &&
+            storedNote.body === serverNote.body
+          )
+        ) {
+          console.log("updating old note");
+          const titleDiff = dmp.diff_main(storedNote.title, serverNote.title);
+          const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
+          dmp.diff_cleanupSemantic(titleDiff);
+          dmp.diff_cleanupSemantic(bodyDiff);
+          const newTitle = patch(storedNote.title, titleDiff);
+          const newBody = patch(storedNote.body, bodyDiff);
+          noteStorage.updateNote({
+            id: noteId,
+            title: newTitle,
+            body: newBody,
+          });
+        }
+      } else {
+        console.log("creating new note");
+        noteStorage.createNote({
+          id: noteId,
+          title: notes[noteId].title,
+          body: notes[noteId].body,
+        });
+      }
+    });
+  });
+  noteStorage.getNotes((err, notes) => {
+    if (err) {
+      console.err("could not fetch notes");
+    }
+    notesProcess.setNotes(notes);
+  });
 });
 
 notes.onNoteCreated((newNote) => {
   console.log("incoming note creation");
   console.log(newNote);
-  inMemoryNotes[newNote.id] = {
-    title: newNote.title,
-    body: newNote.body,
-  };
-  notesProcess.setNotes(inMemoryNotes);
+  noteStorage.createNote(newNote);
+  noteStorage.getNotes((err, notes) => {
+    if (err) {
+      console.err("could not fetch notes");
+    }
+    notesProcess.setNotes(notes);
+  });
 });
 
 notes.onNoteUpdated((noteUpdate) => {
   console.log("incoming note update");
   console.log(noteUpdate);
-  const noteToUpdate = inMemoryNotes[noteUpdate.id];
-  const newTitle = patch(noteToUpdate.title, noteUpdate.title);
-  const newBody = patch(noteToUpdate.body, noteUpdate.body);
-  inMemoryNotes[noteUpdate.id] = {
-    title: newTitle,
-    body: newBody,
-  };
-  notesProcess.setNotes(inMemoryNotes);
+  noteStorage.getNoteById(noteUpdate.id, (err, storedNote) => {
+    if (err) {
+      console.error("could not find note");
+    }
+    const newTitle = patch(storedNote.title, noteUpdate.title);
+    const newBody = patch(storedNote.body, noteUpdate.body);
+    noteStorage.updateNote({
+      id: noteUpdate.id,
+      title: newTitle,
+      body: newBody,
+    });
+    noteStorage.getNotes((err, notes) => {
+      if (err) {
+        console.err("could not fetch notes");
+      }
+      notesProcess.setNotes(notes);
+    });
+  });
 });
 
 notes.onNoteDeleted((noteId) => {
   console.log("incoming note deletion");
   console.log(noteId);
-  delete inMemoryNotes[noteId];
-  notesProcess.setNotes(inMemoryNotes);
+  noteStorage.deleteNote(noteId);
+  noteStorage.getNotes((err, notes) => {
+    if (err) {
+      console.err("could not fetch notes");
+    }
+    notesProcess.setNotes(notes);
+  });
 });
 
 ipcMain.on("logout", () => {
@@ -119,8 +175,13 @@ ipcMain.on("navigateToNote", (_, note) => {
 });
 
 ipcMain.on("navigateToNotes", () => {
-  notesProcess.createWindow(inMemoryNotes);
-  noteProcess.destroyWindow();
+  noteStorage.getNotes((err, notes) => {
+    if (err) {
+      console.err("could not fetch notes");
+    }
+    notesProcess.createWindow(notes);
+    noteProcess.destroyWindow();
+  });
 });
 
 ipcMain.on("createNote", () => {
@@ -129,9 +190,13 @@ ipcMain.on("createNote", () => {
 
 ipcMain.on("updateNote", (_, note) => {
   console.log(note);
-  const prevNote = inMemoryNotes[note.id];
-  notes.updateNote(prevNote, note);
-  notesProcess.destroyWindow();
+  noteStorage.getNoteById(note.id, (err, storedNote) => {
+    if (err) {
+      console.error("could not fetch note");
+    }
+    notes.updateNote(storedNote, note);
+    notesProcess.destroyWindow();
+  });
 });
 
 ipcMain.on("deleteNote", (_, noteId) => {

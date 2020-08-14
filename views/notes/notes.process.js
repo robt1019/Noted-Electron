@@ -4,7 +4,7 @@ const BrowserWindow = electron.BrowserWindow;
 
 let notesWindow = null;
 
-const createWindow = (inMemoryNotes) => {
+const createWindow = (storedNotes) => {
   destroyWindow();
 
   notesWindow = new BrowserWindow({
@@ -20,8 +20,8 @@ const createWindow = (inMemoryNotes) => {
   });
 
   notesWindow.loadURL(`file://${__dirname}/notes.html`).then(() => {
-    if (inMemoryNotes) {
-      notesWindow.webContents.send("notes", inMemoryNotes);
+    if (storedNotes) {
+      notesWindow.webContents.send("notes", storedNotes);
     }
   });
 };
