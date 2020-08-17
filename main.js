@@ -70,6 +70,19 @@ app.on("activate", () => {
 });
 
 notes.onInitialNotes((notes) => {
+  noteStorage.getNotes((err, notes) => {
+    if (err) {
+      console.error(err);
+    }
+    const serverNoteIds = Object.keys(notes);
+    notes.forEach((storedNote) => {
+      console.log(`serverNoteIds: ${serverNoteIds}`);
+      console.log(`stored note id: ${storedNote.id}`);
+      if (!serverNoteIds.includes(storedNote.id)) {
+        noteStorage.deleteNote(storedNote.id);
+      }
+    });
+  });
   Object.keys(notes).forEach((noteId) => {
     const serverNote = notes[noteId];
     noteStorage.getNoteById(noteId, (err, storedNote) => {
@@ -104,6 +117,7 @@ notes.onInitialNotes((notes) => {
           body: notes[noteId].body,
         });
       }
+
       noteStorage.getNotes((err, notes) => {
         if (err) {
           console.err("could not fetch notes");

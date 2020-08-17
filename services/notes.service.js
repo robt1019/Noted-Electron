@@ -99,7 +99,9 @@ const connectToSocket = () => {
       offlineUpdates.processOfflineUpdates(socket);
       socket.once("initialNotes", (data) => {
         console.log("initial notes received");
-        _onInitialNotes(JSON.parse(data));
+        if (data) {
+          _onInitialNotes(JSON.parse(data));
+        }
       });
     });
 
