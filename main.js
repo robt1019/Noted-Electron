@@ -74,7 +74,7 @@ notes.onInitialNotes((notes) => {
     if (err) {
       console.error(err);
     }
-    const serverNoteIds = Object.keys(notes);
+    const serverNoteIds = notes.map((n) => n.id);
     notes.forEach((storedNote) => {
       console.log(`serverNoteIds: ${serverNoteIds}`);
       console.log(`stored note id: ${storedNote.id}`);
@@ -82,47 +82,39 @@ notes.onInitialNotes((notes) => {
         noteStorage.deleteNote(storedNote.id);
       }
     });
-  });
-  Object.keys(notes).forEach((noteId) => {
-    const serverNote = notes[noteId];
-    noteStorage.getNoteById(noteId, (err, storedNote) => {
-      if (err) {
-        console.err("failed to fetch note");
-      }
-      if (storedNote) {
-        if (
-          !(
-            storedNote.title === serverNote.title &&
-            storedNote.body === serverNote.body
-          )
-        ) {
-          console.log("updating old note");
-          const titleDiff = dmp.diff_main(storedNote.title, serverNote.title);
-          const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
-          dmp.diff_cleanupSemantic(titleDiff);
-          dmp.diff_cleanupSemantic(bodyDiff);
-          const newTitle = patch(storedNote.title, titleDiff);
-          const newBody = patch(storedNote.body, bodyDiff);
-          noteStorage.updateNote({
-            id: noteId,
-            title: newTitle,
-            body: newBody,
+    notes.forEach((serverNote) => {
+      noteStorage.getNoteById(serverNote.id, (err, storedNote) => {
+        if (err) {
+          console.err("failed to fetch note");
+        }
+        if (storedNote) {
+          if (
+            !(
+              storedNote.title === serverNote.title &&
+              storedNote.body === serverNote.body
+            )
+          ) {
+            console.log("updating old note");
+            const titleDiff = dmp.diff_main(storedNote.title, serverNote.title);
+            const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
+            dmp.diff_cleanupSemantic(titleDiff);
+            dmp.diff_cleanupSemantic(bodyDiff);
+            const newTitle = patch(storedNote.title, titleDiff);
+            const newBody = patch(storedNote.body, bodyDiff);
+            noteStorage.updateNote({
+              id: storedNote.id,
+              title: newTitle,
+              body: newBody,
+            });
+          }
+        } else {
+          console.log("creating new note");
+          noteStorage.createNote({
+            id: storedNote.id,
+            title: notes[noteId].title,
+            body: notes[noteId].body,
           });
         }
-      } else {
-        console.log("creating new note");
-        noteStorage.createNote({
-          id: noteId,
-          title: notes[noteId].title,
-          body: notes[noteId].body,
-        });
-      }
-
-      noteStorage.getNotes((err, notes) => {
-        if (err) {
-          console.err("could not fetch notes");
-        }
-        notesProcess.setNotes(notes);
       });
     });
   });

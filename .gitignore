@@ -1,2 +1,4 @@
 node_modules
 env-variables.json
+env-variables-prod.json
+env-variables-dev.json
