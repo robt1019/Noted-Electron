@@ -7,6 +7,7 @@ const offlineUpdatesPath = path.join(
 );
 
 const setUpdates = (updates) => {
+  console.log(`offline updates: ${updates}`);
   fs.writeFileSync(offlineUpdatesPath, JSON.stringify(updates));
 };
 
@@ -21,22 +22,29 @@ const getUpdates = () => {
 
 const createNote = (note) => {
   const updates = getUpdates();
-  updates.push("createNote", note);
+  updates.push(["createNote", note]);
   setUpdates(updates);
 };
 const updateNote = (noteUpdate) => {
   const updates = getUpdates();
-  updates.push("updateNote", noteUpdate);
+  updates.push(["updateNote", noteUpdate]);
   setUpdates(updates);
 };
 const deleteNote = (noteId) => {
   const updates = getUpdates();
-  updates.push("deleteNote", noteId);
+  updates.push(["deleteNote", noteId]);
   setUpdates(updates);
 };
 
 const processOfflineUpdates = (socket) => {
-  console.log(getUpdates());
+  getUpdates().forEach((update) => {
+    const action = update[0];
+    const payload = update[1];
+    console.log(
+      `processing offline update ${action}, with payload: ${payload}`
+    );
+    socket.emit(action, payload);
+  });
   setUpdates([]);
 };
 

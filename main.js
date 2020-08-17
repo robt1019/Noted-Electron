@@ -104,6 +104,12 @@ notes.onInitialNotes((notes) => {
           body: notes[noteId].body,
         });
       }
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
     });
   });
   noteStorage.getNotes((err, notes) => {
@@ -132,20 +138,21 @@ notes.onNoteUpdated((noteUpdate) => {
   noteStorage.getNoteById(noteUpdate.id, (err, storedNote) => {
     if (err) {
       console.error("could not find note");
+    } else {
+      const newTitle = patch(storedNote.title, noteUpdate.title);
+      const newBody = patch(storedNote.body, noteUpdate.body);
+      noteStorage.updateNote({
+        id: noteUpdate.id,
+        title: newTitle,
+        body: newBody,
+      });
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
     }
-    const newTitle = patch(storedNote.title, noteUpdate.title);
-    const newBody = patch(storedNote.body, noteUpdate.body);
-    noteStorage.updateNote({
-      id: noteUpdate.id,
-      title: newTitle,
-      body: newBody,
-    });
-    noteStorage.getNotes((err, notes) => {
-      if (err) {
-        console.err("could not fetch notes");
-      }
-      notesProcess.setNotes(notes);
-    });
   });
 });
 

@@ -4,6 +4,7 @@ const auth = require("../services/auth.service");
 const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
 const offlineUpdates = require("./offline-updates.service");
+const noteStorage = require("./note-storage.service");
 
 let socket;
 
@@ -29,19 +30,47 @@ const onNoteDeleted = (cb) => {
 };
 
 const createNote = (note) => {
-  socket.emit("createNote", note);
+  let serverGotTheMessage = false;
+  setTimeout(() => {
+    if (!serverGotTheMessage) {
+      noteStorage.createNote(note);
+      offlineUpdates.createNote(note);
+    }
+  }, 1000);
+  socket.emit("createNote", note, () => {
+    serverGotTheMessage = true;
+  });
 };
 
 const updateNote = (prevNote, updatedNote) => {
-  socket.emit("updateNote", {
+  let serverGotTheMessage = false;
+  const noteUpdate = {
     id: updatedNote.id,
     title: dmp.diff_main(prevNote.title, updatedNote.title),
     body: dmp.diff_main(prevNote.body, updatedNote.body),
+  };
+  setTimeout(() => {
+    if (!serverGotTheMessage) {
+      noteStorage.updateNote(updatedNote);
+      offlineUpdates.updateNote(noteUpdate);
+    }
+  }, 1000);
+  socket.emit("updateNote", noteUpdate, () => {
+    serverGotTheMessage = true;
   });
 };
 
 const deleteNote = (noteId) => {
-  socket.emit("deleteNote", noteId);
+  let serverGotTheMessage = false;
+  setTimeout(() => {
+    if (!serverGotTheMessage) {
+      noteStorage.deleteNote(noteId);
+      offlineUpdates.deleteNote(noteId);
+    }
+  });
+  socket.emit("deleteNote", noteId, () => {
+    serverGotTheMessage = true;
+  });
 };
 
 const connectToSocket = () => {
@@ -67,7 +96,7 @@ const connectToSocket = () => {
     socket.once("authenticated", () => {
       console.log("authenticated");
       socket.emit("getInitialNotes");
-
+      offlineUpdates.processOfflineUpdates(socket);
       socket.once("initialNotes", (data) => {
         console.log("initial notes received");
         _onInitialNotes(JSON.parse(data));
