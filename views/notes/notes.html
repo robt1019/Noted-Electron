@@ -7,12 +7,21 @@
     <meta http-equiv="Content-Security-Policy" content="script-src 'self'" />
   </head>
   <body>
-    <div class="notes__header">
-      <button id="logoutButton">Logout</button>
-      <button id="addNoteButton">+</button>
+    <div class="notes__initialised">
+      <div class="notes__header">
+        <button id="logoutButton">Logout</button>
+        <button id="addNoteButton">+</button>
+      </div>
+      <h2>Notes</h2>
+      <ul id="notesList"></ul>
     </div>
-    <h2>Notes</h2>
-    <ul id="notesList"></ul>
+    <div class="notes__uninitialised">
+      <img
+        src="../../assets/Noted-IOS.png"
+        alt="noated logo"
+        class="notes__splash"
+      />
+    </div>
   </body>
   <script src="./notes.renderer.js"></script>
 </html>

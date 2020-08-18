@@ -22,6 +22,19 @@ button {
   justify-content: space-between;
 }
 
+.notes__uninitialised {
+  height: calc(100vh - 32px);
+  width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.notes__splash {
+  width: 100%;
+}
+
 .notes__note {
   list-style: none;
   display: flex;

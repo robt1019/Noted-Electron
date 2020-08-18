@@ -5,6 +5,7 @@ const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
 const offlineUpdates = require("./offline-updates.service");
 const noteStorage = require("./note-storage.service");
+const notesProcess = require("../views/notes/notes.process");
 
 let socket;
 
@@ -35,6 +36,12 @@ const createNote = (note) => {
     if (!serverGotTheMessage) {
       noteStorage.createNote(note);
       offlineUpdates.createNote(note);
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
     }
   }, 1000);
   socket.emit("createNote", note, () => {
@@ -53,6 +60,12 @@ const updateNote = (prevNote, updatedNote) => {
     if (!serverGotTheMessage) {
       noteStorage.updateNote(updatedNote);
       offlineUpdates.updateNote(noteUpdate);
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
     }
   }, 1000);
   socket.emit("updateNote", noteUpdate, () => {
@@ -66,8 +79,14 @@ const deleteNote = (noteId) => {
     if (!serverGotTheMessage) {
       noteStorage.deleteNote(noteId);
       offlineUpdates.deleteNote(noteId);
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
     }
-  });
+  }, 1000);
   socket.emit("deleteNote", noteId, () => {
     serverGotTheMessage = true;
   });
@@ -95,8 +114,9 @@ const connectToSocket = () => {
 
     socket.once("authenticated", () => {
       console.log("authenticated");
-      socket.emit("getInitialNotes");
-      offlineUpdates.processOfflineUpdates(socket);
+      offlineUpdates.processOfflineUpdates(socket, () => {
+        socket.emit("getInitialNotes");
+      });
       socket.once("initialNotes", (data) => {
         console.log("initial notes received");
         if (data) {

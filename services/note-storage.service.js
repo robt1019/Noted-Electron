@@ -43,7 +43,7 @@ const getNoteById = (id, done) => {
 const createNote = (note) => {
   db.serialize(() => {
     db.run(`
-    INSERT INTO notes (id, title, body)
+    INSERT OR REPLACE INTO notes (id, title, body)
     VALUES("${note.id}", "${note.title}", "${note.body}")
     `);
   });

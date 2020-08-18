@@ -1,6 +1,11 @@
 const logoutButton = document.getElementById("logoutButton");
 const addNoteButton = document.getElementById("addNoteButton");
 const notesList = document.getElementById("notesList");
+const initialisedNotes = document.querySelector(".notes__initialised");
+const uninitialisedNotes = document.querySelector(".notes__uninitialised");
+
+uninitialisedNotes.style.display = "flex";
+initialisedNotes.style.display = "none";
 
 logoutButton.addEventListener("click", () => {
   window.noted.logout();
@@ -11,6 +16,8 @@ addNoteButton.addEventListener("click", () => {
 });
 
 window.noted.onNotes((_, notes) => {
+  uninitialisedNotes.style.display = "none";
+  initialisedNotes.style.display = "block";
   notesList.innerHTML = "";
   let noteNodes = [];
   notes.forEach((note) => {

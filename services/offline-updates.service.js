@@ -36,16 +36,17 @@ const deleteNote = (noteId) => {
   setUpdates(updates);
 };
 
-const processOfflineUpdates = (socket) => {
-  getUpdates().forEach((update) => {
-    const action = update[0];
-    const payload = update[1];
-    console.log(
-      `processing offline update ${action}, with payload: ${payload}`
-    );
-    socket.emit(action, payload);
-  });
-  setUpdates([]);
+const processOfflineUpdates = (socket, done) => {
+  const updates = getUpdates();
+  if (updates && updates.length) {
+    socket.emit("offlineUpdates", getUpdates());
+    socket.once("offlineUpdatesProcessed", () => {
+      fs.unlinkSync(offlineUpdatesPath);
+      done();
+    });
+  } else {
+    done();
+  }
 };
 
 module.exports = {
