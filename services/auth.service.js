@@ -9,7 +9,7 @@ const { apiIdentifier, auth0Domain, clientId } = envVariables;
 
 const redirectUri = "http://127.0.0.1:5321";
 
-const keytarService = "noted-auth";
+const keytarService = "noated-auth";
 const keytarAccount = os.userInfo().username;
 
 let accessToken = null;

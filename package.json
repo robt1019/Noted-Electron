@@ -1,16 +1,25 @@
 {
-  "name": "Noted",
-  "version": "0.0.2",
+  "name": "Noated",
+  "version": "0.1.0",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build:mac": "electron-builder -m",
+    "open:mac": "open dist/mac/noted.app"
+  },
+  "build": {
+    "appId": "com.myware.noted",
+    "directories": {
+      "buildResources": "assets"
+    }
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^9.2.0"
+    "electron": "^9.2.0",
+    "electron-builder": "^22.8.0"
   },
   "dependencies": {
     "axios": "^0.19.2",

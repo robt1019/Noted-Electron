@@ -3,3 +3,4 @@ env-variables.json
 env-variables-prod.json
 env-variables-dev.json
 .DS_Store
+dist
