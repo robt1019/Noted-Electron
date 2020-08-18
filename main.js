@@ -69,21 +69,22 @@ app.on("activate", () => {
   }
 });
 
-notes.onInitialNotes((notes) => {
-  noteStorage.getNotes((err, notes) => {
+notes.onInitialNotes((serverNotes) => {
+  noteStorage.getNotes((err, storedNotes) => {
     if (err) {
       console.error(err);
     }
-    const serverNoteIds = notes.map((n) => n.id);
-    notes.forEach((storedNote) => {
+    const serverNoteIds = Object.keys(serverNotes);
+    storedNotes.forEach((storedNote) => {
       console.log(`serverNoteIds: ${serverNoteIds}`);
       console.log(`stored note id: ${storedNote.id}`);
       if (!serverNoteIds.includes(storedNote.id)) {
         noteStorage.deleteNote(storedNote.id);
       }
     });
-    notes.forEach((serverNote) => {
-      noteStorage.getNoteById(serverNote.id, (err, storedNote) => {
+    serverNoteIds.forEach((serverNoteId) => {
+      const serverNote = serverNotes[serverNoteId];
+      noteStorage.getNoteById(serverNoteId, (err, storedNote) => {
         if (err) {
           console.err("failed to fetch note");
         }
@@ -102,7 +103,7 @@ notes.onInitialNotes((notes) => {
             const newTitle = patch(storedNote.title, titleDiff);
             const newBody = patch(storedNote.body, bodyDiff);
             noteStorage.updateNote({
-              id: storedNote.id,
+              id: serverNoteId,
               title: newTitle,
               body: newBody,
             });
@@ -110,19 +111,21 @@ notes.onInitialNotes((notes) => {
         } else {
           console.log("creating new note");
           noteStorage.createNote({
-            id: storedNote.id,
-            title: notes[noteId].title,
-            body: notes[noteId].body,
+            id: serverNoteId,
+            title: serverNote.title,
+            body: serverNote.body,
           });
         }
       });
     });
-  });
-  noteStorage.getNotes((err, notes) => {
-    if (err) {
-      console.err("could not fetch notes");
-    }
-    notesProcess.setNotes(notes);
+    setTimeout(() => {
+      noteStorage.getNotes((err, notes) => {
+        if (err) {
+          console.err("could not fetch notes");
+        }
+        notesProcess.setNotes(notes);
+      });
+    }, 250);
   });
 });
 

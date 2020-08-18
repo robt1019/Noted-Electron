@@ -16,6 +16,7 @@ window.noted.onNotes((_, notes) => {
   notes.forEach((note) => {
     console.log(note);
     const li = document.createElement("li");
+    li.classList.add("notes__note");
     const titleSpan = document.createElement("span");
     titleSpan.innerText = note.title;
     titleSpan.addEventListener("click", () => {

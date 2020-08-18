@@ -1,0 +1,33 @@
+body {
+  padding: 0;
+  margin: 16px;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
+
+span {
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+}
+
+.notes__header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.notes__note {
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  padding-top: 8px;
+  border-top: 1px solid lightgray;
+}
