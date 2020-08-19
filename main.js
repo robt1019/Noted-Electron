@@ -51,6 +51,10 @@ async function createWindow() {
   }
 }
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
@@ -127,7 +131,7 @@ notes.onNoteCreated((newNote) => {
     if (err) {
       console.err("could not fetch notes");
     }
-    notesProcess.setNotes(notes);
+    appWindow.setNotes(notes);
   });
 });
 
