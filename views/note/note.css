@@ -1,16 +1,19 @@
 body {
   padding: 0;
   margin: 16px;
+  font-family: "Source Sans Pro", sans-serif;
 }
 
 button {
   cursor: pointer;
+  font-family: inherit;
 }
 
 textarea {
   border: none;
   outline: none;
   resize: none;
+  font-family: inherit;
 }
 
 #title {
