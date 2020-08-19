@@ -12,10 +12,7 @@
     "appId": "com.myware.noted",
     "directories": {
       "buildResources": "assets"
-    },
-    "extraResources": [
-      "./assets/**"
-    ]
+    }
   },
   "keywords": [],
   "author": "",

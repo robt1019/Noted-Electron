@@ -1,5 +1,4 @@
 const electron = require("electron");
-const notesProcess = require("../notes/notes.process");
 const BrowserWindow = electron.BrowserWindow;
 
 let loggedOutWindow = null;
