@@ -7,7 +7,6 @@ const offlineUpdatesPath = path.join(
 );
 
 const setUpdates = (updates) => {
-  console.log(`offline updates: ${JSON.stringify(updates)}`);
   fs.writeFileSync(offlineUpdatesPath, JSON.stringify(updates));
 };
 

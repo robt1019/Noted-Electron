@@ -98,7 +98,6 @@ const connectToSocket = (onLoggedOut) => {
 
   socket.on("connect", () => {
     const token = auth.getAccessToken();
-    console.log("authenticating");
     socket.emit("authenticate", { token });
   });
 
@@ -115,12 +114,10 @@ const connectToSocket = (onLoggedOut) => {
   });
 
   socket.on("authenticated", () => {
-    console.log("authenticated");
     offlineUpdates.processOfflineUpdates(socket, () => {
       socket.emit("getInitialNotes");
     });
     socket.once("initialNotes", (data) => {
-      console.log("initial notes received");
       if (data) {
         _onInitialNotes(JSON.parse(data));
       }
@@ -128,7 +125,6 @@ const connectToSocket = (onLoggedOut) => {
   });
 
   socket.on("unauthorized", async () => {
-    console.log("socket unauthorized, reconnecting");
     try {
       await auth.refreshTokens();
       socket.connect();
@@ -140,7 +136,6 @@ const connectToSocket = (onLoggedOut) => {
   });
 
   socket.on("disconnect", async () => {
-    console.log("socket disconnected, reconnecting");
     try {
       await auth.refreshTokens();
       socket.connect();

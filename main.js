@@ -31,7 +31,6 @@ redirectServer.get("/logged-in", async (req, res) => {
     loggedOutProcess.destroyWindow();
     res.send("logged in");
   } catch (err) {
-    console.log(err);
     loggedOutProcess.createWindow();
     notesProcess.destroyWindow();
   }
@@ -55,7 +54,6 @@ async function createWindow() {
     notesProcess.createWindow();
     loggedOutProcess.destroyWindow();
   } catch (err) {
-    console.log(err);
     loggedOutProcess.createWindow();
     notesProcess.destroyWindow();
   }
@@ -82,8 +80,6 @@ notes.onInitialNotes((serverNotes) => {
     }
     const serverNoteIds = Object.keys(serverNotes);
     storedNotes.forEach((storedNote) => {
-      console.log(`serverNoteIds: ${serverNoteIds}`);
-      console.log(`stored note id: ${storedNote.id}`);
       if (!serverNoteIds.includes(storedNote.id)) {
         noteStorage.deleteNote(storedNote.id);
       }
@@ -101,7 +97,6 @@ notes.onInitialNotes((serverNotes) => {
               storedNote.body === serverNote.body
             )
           ) {
-            console.log("updating old note");
             const titleDiff = dmp.diff_main(storedNote.title, serverNote.title);
             const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
             dmp.diff_cleanupSemantic(titleDiff);
@@ -115,7 +110,6 @@ notes.onInitialNotes((serverNotes) => {
             });
           }
         } else {
-          console.log("creating new note");
           noteStorage.createNote({
             id: serverNoteId,
             title: serverNote.title,
@@ -136,8 +130,6 @@ notes.onInitialNotes((serverNotes) => {
 });
 
 notes.onNoteCreated((newNote) => {
-  console.log("incoming note creation");
-  console.log(newNote);
   noteStorage.createNote(newNote);
   noteStorage.getNotes((err, notes) => {
     if (err) {
@@ -148,8 +140,6 @@ notes.onNoteCreated((newNote) => {
 });
 
 notes.onNoteUpdated((noteUpdate) => {
-  console.log("incoming note update");
-  console.log(noteUpdate);
   noteStorage.getNoteById(noteUpdate.id, (err, storedNote) => {
     if (err) {
       console.error("could not find note");
@@ -172,8 +162,6 @@ notes.onNoteUpdated((noteUpdate) => {
 });
 
 notes.onNoteDeleted((noteId) => {
-  console.log("incoming note deletion");
-  console.log(noteId);
   noteStorage.deleteNote(noteId);
   noteStorage.getNotes((err, notes) => {
     if (err) {
@@ -211,7 +199,6 @@ ipcMain.on("createNote", () => {
 });
 
 ipcMain.on("updateNote", (_, note) => {
-  console.log(note);
   noteStorage.getNoteById(note.id, (err, storedNote) => {
     if (err) {
       console.error("could not fetch note");

@@ -77,7 +77,6 @@ async function refreshTokens() {
       const response = await axios(refreshOptions);
       accessToken = response.data.access_token;
       if (response.data && response.data.refresh_token) {
-        console.log("adding new refresh token");
         await keytar.setPassword(
           keytarService,
           keytarAccount,
