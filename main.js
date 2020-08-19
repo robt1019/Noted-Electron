@@ -1,15 +1,13 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const auth = require("./services/auth.service");
-const loggedOutProcess = require("./views/logged-out/logged-out.process");
-const notesProcess = require("./views/notes/notes.process");
 const notes = require("./services/notes.service");
 const express = require("express");
 const authService = require("./services/auth.service");
-const noteProcess = require("./views/note/note.process");
 const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
 const { v4: uuidv4 } = require("uuid");
 const noteStorage = require("./services/note-storage.service");
+const appWindow = require("./views/app.window");
 
 const patch = (string, diff) => {
   dmp.diff_cleanupSemantic(diff);
@@ -24,38 +22,32 @@ redirectServer.get("/logged-in", async (req, res) => {
   try {
     await auth.loadTokens(req.url);
     notes.connectToSocket(() => {
-      loggedOutProcess.createWindow();
-      notesProcess.destroyWindow();
+      appWindow.navigateToLoggedOut();
     });
-    notesProcess.createWindow();
-    loggedOutProcess.destroyWindow();
-    res.send("logged in");
+    res.send("Logged in to Noated :) Switch back to the app");
+    appWindow.navigateToNotes();
   } catch (err) {
-    loggedOutProcess.createWindow();
-    notesProcess.destroyWindow();
+    appWindow.navigateToLoggedOut();
   }
 });
 
 redirectServer.get("/logged-out", async (_, res) => {
-  loggedOutProcess.createWindow();
-  notesProcess.destroyWindow();
+  appWindow.navigateToLoggedOut();
   res.send("logged out");
 });
 
 redirectServer.listen(5321, "127.0.0.1");
 
 async function createWindow() {
+  appWindow.createWindow();
   try {
     await authService.refreshTokens();
     notes.connectToSocket(() => {
-      loggedOutProcess.createWindow();
-      notesProcess.destroyWindow();
+      appWindow.navigateToLoggedOut();
     });
-    notesProcess.createWindow();
-    loggedOutProcess.destroyWindow();
+    appWindow.navigateToNotes();
   } catch (err) {
-    loggedOutProcess.createWindow();
-    notesProcess.destroyWindow();
+    appWindow.navigateToLoggedOut();
   }
 }
 
@@ -123,7 +115,7 @@ notes.onInitialNotes((serverNotes) => {
         if (err) {
           console.err("could not fetch notes");
         }
-        notesProcess.setNotes(notes);
+        appWindow.setNotes(notes);
       });
     }, 250);
   });
@@ -155,7 +147,7 @@ notes.onNoteUpdated((noteUpdate) => {
         if (err) {
           console.err("could not fetch notes");
         }
-        notesProcess.setNotes(notes);
+        appWindow.setNotes(notes);
       });
     }
   });
@@ -167,7 +159,7 @@ notes.onNoteDeleted((noteId) => {
     if (err) {
       console.err("could not fetch notes");
     }
-    notesProcess.setNotes(notes);
+    appWindow.setNotes(notes);
   });
 });
 
@@ -180,8 +172,7 @@ ipcMain.on("login", () => {
 });
 
 ipcMain.on("navigateToNote", (_, note) => {
-  noteProcess.createWindow(note);
-  notesProcess.destroyWindow();
+  appWindow.navigateToNote(note);
 });
 
 ipcMain.on("navigateToNotes", () => {
@@ -189,8 +180,7 @@ ipcMain.on("navigateToNotes", () => {
     if (err) {
       console.err("could not fetch notes");
     }
-    notesProcess.createWindow(notes);
-    noteProcess.destroyWindow();
+    appWindow.navigateToNotes(notes);
   });
 });
 
@@ -204,7 +194,6 @@ ipcMain.on("updateNote", (_, note) => {
       console.error("could not fetch note");
     }
     notes.updateNote(storedNote, note);
-    notesProcess.destroyWindow();
   });
 });
 

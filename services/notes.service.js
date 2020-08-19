@@ -5,8 +5,8 @@ const { diff_match_patch } = require("diff-match-patch");
 const dmp = new diff_match_patch();
 const offlineUpdates = require("./offline-updates.service");
 const noteStorage = require("./note-storage.service");
-const notesProcess = require("../views/notes/notes.process");
 const networkDetector = require("./network-detector.service");
+const appWindow = require("../views/app.window");
 
 let socket;
 
@@ -41,7 +41,7 @@ const createNote = (note) => {
         if (err) {
           console.err("could not fetch notes");
         }
-        notesProcess.setNotes(notes);
+        appWindow.setNotes(notes);
       });
     }
   }, 1000);
@@ -65,7 +65,7 @@ const updateNote = (prevNote, updatedNote) => {
         if (err) {
           console.err("could not fetch notes");
         }
-        notesProcess.setNotes(notes);
+        appWindow.setNotes(notes);
       });
     }
   }, 1000);
@@ -84,7 +84,7 @@ const deleteNote = (noteId) => {
         if (err) {
           console.err("could not fetch notes");
         }
-        notesProcess.setNotes(notes);
+        appWindow.setNotes(notes);
       });
     }
   }, 1000);
