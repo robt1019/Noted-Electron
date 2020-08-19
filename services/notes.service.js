@@ -6,6 +6,7 @@ const dmp = new diff_match_patch();
 const offlineUpdates = require("./offline-updates.service");
 const noteStorage = require("./note-storage.service");
 const notesProcess = require("../views/notes/notes.process");
+const networkDetector = require("./network-detector.service");
 
 let socket;
 
@@ -92,57 +93,73 @@ const deleteNote = (noteId) => {
   });
 };
 
-const connectToSocket = () => {
+const connectToSocket = (onLoggedOut) => {
   socket = io(apiIdentifier);
 
   socket.on("connect", () => {
     const token = auth.getAccessToken();
     console.log("authenticating");
     socket.emit("authenticate", { token });
+  });
 
-    socket.on("noteCreated", (newNote) => {
-      _onNoteCreated(newNote);
+  socket.on("noteCreated", (newNote) => {
+    _onNoteCreated(newNote);
+  });
+
+  socket.on("noteUpdated", (noteUpdate) => {
+    _onNoteUpdated(noteUpdate);
+  });
+
+  socket.on("noteDeleted", (noteId) => {
+    _onNoteDeleted(noteId);
+  });
+
+  socket.on("authenticated", () => {
+    console.log("authenticated");
+    offlineUpdates.processOfflineUpdates(socket, () => {
+      socket.emit("getInitialNotes");
     });
-
-    socket.on("noteUpdated", (noteUpdate) => {
-      _onNoteUpdated(noteUpdate);
+    socket.once("initialNotes", (data) => {
+      console.log("initial notes received");
+      if (data) {
+        _onInitialNotes(JSON.parse(data));
+      }
     });
+  });
 
-    socket.on("noteDeleted", (noteId) => {
-      _onNoteDeleted(noteId);
-    });
-
-    socket.once("authenticated", () => {
-      console.log("authenticated");
-      offlineUpdates.processOfflineUpdates(socket, () => {
-        socket.emit("getInitialNotes");
-      });
-      socket.once("initialNotes", (data) => {
-        console.log("initial notes received");
-        if (data) {
-          _onInitialNotes(JSON.parse(data));
-        }
-      });
-    });
-
-    socket.on("unauthorized", async () => {
-      console.log("socket unauthorized, reconnecting");
+  socket.on("unauthorized", async () => {
+    console.log("socket unauthorized, reconnecting");
+    try {
       await auth.refreshTokens();
       socket.connect();
-    });
+    } catch (err) {
+      console.error(err);
+      auth.logout();
+      onLoggedOut();
+    }
+  });
 
-    socket.on("disconnect", async () => {
-      console.log("socket disconnected, reconnecting");
+  socket.on("disconnect", async () => {
+    console.log("socket disconnected, reconnecting");
+    try {
       await auth.refreshTokens();
       socket.connect();
-    });
+    } catch (err) {
+      console.error(err);
+      auth.logout();
+      onLoggedOut();
+    }
+  });
+
+  networkDetector.onNetworkChange((isOnline) => {
+    if (isOnline) {
+      socket.connect();
+    }
   });
 };
 
 module.exports = {
-  connectToNotesStream: () => {
-    connectToSocket();
-  },
+  connectToSocket,
   onNoteCreated,
   onNoteUpdated,
   onNoteDeleted,

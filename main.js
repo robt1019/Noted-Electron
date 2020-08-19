@@ -23,7 +23,10 @@ const redirectServer = express();
 redirectServer.get("/logged-in", async (req, res) => {
   try {
     await auth.loadTokens(req.url);
-    notes.connectToNotesStream();
+    notes.connectToSocket(() => {
+      loggedOutProcess.createWindow();
+      notesProcess.destroyWindow();
+    });
     notesProcess.createWindow();
     loggedOutProcess.destroyWindow();
     res.send("logged in");
@@ -45,7 +48,10 @@ redirectServer.listen(5321, "127.0.0.1");
 async function createWindow() {
   try {
     await authService.refreshTokens();
-    notes.connectToNotesStream();
+    notes.connectToSocket(() => {
+      loggedOutProcess.createWindow();
+      notesProcess.destroyWindow();
+    });
     notesProcess.createWindow();
     loggedOutProcess.destroyWindow();
   } catch (err) {
