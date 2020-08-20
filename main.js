@@ -192,13 +192,8 @@ ipcMain.on("createNote", () => {
   notes.createNote({ id: uuidv4(), title: "New...", body: "Body..." });
 });
 
-ipcMain.on("updateNote", (_, note) => {
-  noteStorage.getNoteById(note.id, (err, storedNote) => {
-    if (err) {
-      console.error("could not fetch note");
-    }
-    notes.updateNote(storedNote, note);
-  });
+ipcMain.on("updateNote", (_, prevNote, note) => {
+  notes.updateNote(prevNote, note);
 });
 
 ipcMain.on("deleteNote", (_, noteId) => {

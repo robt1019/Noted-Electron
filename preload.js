@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld("noted", {
   onNotes: (callback) => ipcRenderer.on("notes", callback),
   onNote: (callback) => ipcRenderer.on("note", callback),
   createNote: () => ipcRenderer.send("createNote"),
-  updateNote: (updatedNote) => ipcRenderer.send("updateNote", updatedNote),
+  updateNote: (prevNote, updatedNote) =>
+    ipcRenderer.send("updateNote", prevNote, updatedNote),
   deleteNote: (noteId) => ipcRenderer.send("deleteNote", noteId),
 });

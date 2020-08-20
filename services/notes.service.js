@@ -52,10 +52,14 @@ const createNote = (note) => {
 
 const updateNote = (prevNote, updatedNote) => {
   let serverGotTheMessage = false;
+  const titleDiff = dmp.diff_main(prevNote.title, updatedNote.title);
+  const bodyDiff = dmp.diff_main(prevNote.body, updatedNote.body);
+  dmp.diff_cleanupSemantic(titleDiff);
+  dmp.diff_cleanupSemantic(bodyDiff);
   const noteUpdate = {
     id: updatedNote.id,
-    title: dmp.diff_main(prevNote.title, updatedNote.title),
-    body: dmp.diff_main(prevNote.body, updatedNote.body),
+    title: titleDiff,
+    body: bodyDiff,
   };
   setTimeout(() => {
     if (!serverGotTheMessage) {
