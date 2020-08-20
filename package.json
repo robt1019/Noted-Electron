@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build:mac": "electron-builder -m",
-    "build:windows": "electron-builder -w"
+    "build:windows": "electron-builder -w",
+    "distribute": "npx electron-builder -mwl && cp dist/*.dmg ../../installers && cp dist/*.snap ../../installers && cp dist/*.exe ../../installers && cd ../../installers && git add -A && git commit -m 'update installers' && git push && cd -"
   },
   "build": {
     "appId": "com.myware.noted",

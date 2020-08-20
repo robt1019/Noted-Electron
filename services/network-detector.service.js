@@ -1,4 +1,5 @@
 const net = require("net");
+const { apiIdentifier } = require("../env-variables.json");
 
 let lastEmitted = false;
 
@@ -9,11 +10,12 @@ const checkConnection = (onChange) => {
   const connection = net.connect(
     {
       port: 80,
-      host: "google.com",
+      host: apiIdentifier,
     },
     () => {
       if (lastEmitted === false) {
         lastEmitted = true;
+        console.log("online");
         _onChange(true);
       }
     }
@@ -21,6 +23,7 @@ const checkConnection = (onChange) => {
   connection.on("error", () => {
     if (lastEmitted === true) {
       lastEmitted = false;
+      console.log("offline");
       _onChange(false);
     }
   });
