@@ -4,18 +4,20 @@ var sqlite3 = require("sqlite3").verbose();
 
 const db = new sqlite3.Database(path.join(app.getPath("userData"), "notes"));
 
-db.serialize(() => {
-  db.run(`
+app.on("quit", () => {
+  db.close();
+});
+
+const initialise = () => {
+  db.serialize(() => {
+    db.run(`
     CREATE TABLE IF NOT EXISTS notes (
         id TEXT NOT NULL UNIQUE,
         title TEXT NOT NULL,
         body TEXT NOT NULL
     )`);
-});
-
-app.on("quit", () => {
-  db.close();
-});
+  });
+};
 
 const getNotes = (done) => {
   db.serialize(() => {
@@ -76,6 +78,7 @@ const deleteAll = () => {
 };
 
 module.exports = {
+  initialise,
   getNotes,
   getNoteById,
   createNote,

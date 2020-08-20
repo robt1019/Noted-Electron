@@ -39,7 +39,7 @@ const createNote = (note) => {
       offlineUpdates.createNote(note);
       noteStorage.getNotes((err, notes) => {
         if (err) {
-          console.err("could not fetch notes");
+          console.error("could not fetch notes");
         }
         appWindow.setNotes(notes);
       });
@@ -67,7 +67,7 @@ const updateNote = (prevNote, updatedNote) => {
       offlineUpdates.updateNote(noteUpdate);
       noteStorage.getNotes((err, notes) => {
         if (err) {
-          console.err("could not fetch notes");
+          console.error("could not fetch notes");
         }
         appWindow.setNotes(notes);
       });
@@ -86,7 +86,7 @@ const deleteNote = (noteId) => {
       offlineUpdates.deleteNote(noteId);
       noteStorage.getNotes((err, notes) => {
         if (err) {
-          console.err("could not fetch notes");
+          console.error("could not fetch notes");
         }
         appWindow.setNotes(notes);
       });

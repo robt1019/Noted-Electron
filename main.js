@@ -8,6 +8,7 @@ const dmp = new diff_match_patch();
 const { v4: uuidv4 } = require("uuid");
 const noteStorage = require("./services/note-storage.service");
 const appWindow = require("./views/app.window");
+const offlineUpdatesService = require("./services/offline-updates.service");
 
 const patch = (string, diff) => {
   dmp.diff_cleanupSemantic(diff);
@@ -21,6 +22,7 @@ const redirectServer = express();
 redirectServer.get("/logged-in", async (req, res) => {
   try {
     await auth.loadTokens(req.url);
+    noteStorage.initialise();
     notes.connectToSocket(() => {
       appWindow.navigateToLoggedOut();
     });
@@ -33,6 +35,8 @@ redirectServer.get("/logged-in", async (req, res) => {
 
 redirectServer.get("/logged-out", async (_, res) => {
   appWindow.navigateToLoggedOut();
+  noteStorage.deleteAll();
+  offlineUpdatesService.clear();
   res.send("logged out");
 });
 
@@ -41,6 +45,7 @@ redirectServer.listen(5321, "127.0.0.1");
 async function createWindow() {
   appWindow.createWindow();
   try {
+    noteStorage.initialise();
     await authService.refreshTokens();
     notes.connectToSocket(() => {
       appWindow.navigateToLoggedOut();
@@ -74,50 +79,57 @@ notes.onInitialNotes((serverNotes) => {
     if (err) {
       console.error(err);
     }
-    const serverNoteIds = Object.keys(serverNotes);
-    storedNotes.forEach((storedNote) => {
-      if (!serverNoteIds.includes(storedNote.id)) {
-        noteStorage.deleteNote(storedNote.id);
+    if (serverNotes) {
+      const serverNoteIds = Object.keys(serverNotes);
+      if (storedNotes) {
+        storedNotes.forEach((storedNote) => {
+          if (!serverNoteIds.includes(storedNote.id)) {
+            noteStorage.deleteNote(storedNote.id);
+          }
+        });
       }
-    });
-    serverNoteIds.forEach((serverNoteId) => {
-      const serverNote = serverNotes[serverNoteId];
-      noteStorage.getNoteById(serverNoteId, (err, storedNote) => {
-        if (err) {
-          console.err("failed to fetch note");
-        }
-        if (storedNote) {
-          if (
-            !(
-              storedNote.title === serverNote.title &&
-              storedNote.body === serverNote.body
-            )
-          ) {
-            const titleDiff = dmp.diff_main(storedNote.title, serverNote.title);
-            const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
-            dmp.diff_cleanupSemantic(titleDiff);
-            dmp.diff_cleanupSemantic(bodyDiff);
-            const newTitle = patch(storedNote.title, titleDiff);
-            const newBody = patch(storedNote.body, bodyDiff);
-            noteStorage.updateNote({
+      serverNoteIds.forEach((serverNoteId) => {
+        const serverNote = serverNotes[serverNoteId];
+        noteStorage.getNoteById(serverNoteId, (err, storedNote) => {
+          if (err) {
+            console.error("failed to fetch note");
+          }
+          if (storedNote) {
+            if (
+              !(
+                storedNote.title === serverNote.title &&
+                storedNote.body === serverNote.body
+              )
+            ) {
+              const titleDiff = dmp.diff_main(
+                storedNote.title,
+                serverNote.title
+              );
+              const bodyDiff = dmp.diff_main(storedNote.body, serverNote.body);
+              dmp.diff_cleanupSemantic(titleDiff);
+              dmp.diff_cleanupSemantic(bodyDiff);
+              const newTitle = patch(storedNote.title, titleDiff);
+              const newBody = patch(storedNote.body, bodyDiff);
+              noteStorage.updateNote({
+                id: serverNoteId,
+                title: newTitle,
+                body: newBody,
+              });
+            }
+          } else {
+            noteStorage.createNote({
               id: serverNoteId,
-              title: newTitle,
-              body: newBody,
+              title: serverNote.title,
+              body: serverNote.body,
             });
           }
-        } else {
-          noteStorage.createNote({
-            id: serverNoteId,
-            title: serverNote.title,
-            body: serverNote.body,
-          });
-        }
+        });
       });
-    });
+    }
     setTimeout(() => {
       noteStorage.getNotes((err, notes) => {
         if (err) {
-          console.err("could not fetch notes");
+          console.error("could not fetch notes");
         }
         appWindow.setNotes(notes);
       });
@@ -129,7 +141,7 @@ notes.onNoteCreated((newNote) => {
   noteStorage.createNote(newNote);
   noteStorage.getNotes((err, notes) => {
     if (err) {
-      console.err("could not fetch notes");
+      console.error("could not fetch notes");
     }
     appWindow.setNotes(notes);
   });
@@ -149,7 +161,7 @@ notes.onNoteUpdated((noteUpdate) => {
       });
       noteStorage.getNotes((err, notes) => {
         if (err) {
-          console.err("could not fetch notes");
+          console.error("could not fetch notes");
         }
         appWindow.setNotes(notes);
       });
@@ -161,7 +173,7 @@ notes.onNoteDeleted((noteId) => {
   noteStorage.deleteNote(noteId);
   noteStorage.getNotes((err, notes) => {
     if (err) {
-      console.err("could not fetch notes");
+      console.error("could not fetch notes");
     }
     appWindow.setNotes(notes);
   });
@@ -182,7 +194,7 @@ ipcMain.on("navigateToNote", (_, note) => {
 ipcMain.on("navigateToNotes", () => {
   noteStorage.getNotes((err, notes) => {
     if (err) {
-      console.err("could not fetch notes");
+      console.error("could not fetch notes");
     }
     appWindow.navigateToNotes(notes);
   });

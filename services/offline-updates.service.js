@@ -19,6 +19,10 @@ const getUpdates = () => {
   }
 };
 
+const clear = () => {
+  fs.unlinkSync(offlineUpdatesPath);
+};
+
 const createNote = (note) => {
   const updates = getUpdates();
   updates.push(["createNote", note]);
@@ -49,6 +53,7 @@ const processOfflineUpdates = (socket, done) => {
 };
 
 module.exports = {
+  clear,
   createNote,
   updateNote,
   deleteNote,

@@ -15,7 +15,6 @@ const checkConnection = (onChange) => {
     () => {
       if (lastEmitted === false) {
         lastEmitted = true;
-        console.log("online");
         _onChange(true);
       }
     }
@@ -23,7 +22,6 @@ const checkConnection = (onChange) => {
   connection.on("error", () => {
     if (lastEmitted === true) {
       lastEmitted = false;
-      console.log("offline");
       _onChange(false);
     }
   });
