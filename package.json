@@ -6,25 +6,30 @@
   "scripts": {
     "start": "electron .",
     "build:mac": "electron-builder -m",
-    "build:windows": "electron-builder -w",
-    "distribute": "npx electron-builder -mwl && cp dist/*.dmg ../../installers && cp dist/*.snap ../../installers && cp dist/*.exe ../../installers && cd ../../installers && git add -A && git commit -m 'update installers' && git push && cd -"
+    "build:windows": "electron-builder -w"
   },
   "build": {
-    "appId": "com.myware.noted",
-    "directories": {
-      "buildResources": "assets"
-    }
+    "mac": {
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "afterSign": "scripts/notarize.js",
+    "appId": "com.myware.noted"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "electron": "^9.2.0",
-    "electron-builder": "^22.8.0"
+    "electron-builder": "^22.8.0",
+    "electron-notarize": "^1.0.0"
   },
   "dependencies": {
     "axios": "^0.19.2",
     "diff-match-patch": "^1.0.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "keytar": "^6.0.1",
     "socket.io-client": "^2.3.0",
