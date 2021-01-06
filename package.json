@@ -27,7 +27,7 @@
     "electron-notarize": "^1.0.0"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "diff-match-patch": "^1.0.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
